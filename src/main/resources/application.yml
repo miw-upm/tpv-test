@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: tpv-test
+  profiles:
+  # Profile ----------------------------------------
+    active: dev
+  # ------------------------------------------------
+  output:
+    ansi:
+      enabled: ALWAYS
+  cache:
+    type: none
+  jackson:
+    default-property-inclusion: NON_NULL
+  security:
+    oauth2:
+      api-client-id: api-client-id
+      api-client-secret: api-client-secret
+      token-uri: http://localhost:8080/tpv-user/oauth2/token
+
+info:
+  app:
+    artifact: "@project.artifactId@"
+    version: "@project.version@"
+    build: "@maven.build.timestamp@"
+
+logging:
+  level:
+    root: WARN
+    es.upm.miw: DEBUG
+
+
