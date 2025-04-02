@@ -20,11 +20,9 @@ class TicketResourceFT {
 
     @Test
     void testReadTicket() {
-        //ATENCION!!!! aqui se propaga el scope ADMIN, PERO FALTA CREAR UN GESTOR DE TOKENS CUANDO SE REALICEN PETICIONE ANONIMAS
         ResponseEntity<Ticket> response = this.httpRequestBuilder
                 .get(URL + "/{urlToken}", "AAAABBBBCCCCDDDDEEEE00").exchange(Ticket.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        System.out.println(response.getBody());
     }
 
 }
