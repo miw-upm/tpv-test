@@ -12,11 +12,6 @@ spring:
     type: none
   jackson:
     default-property-inclusion: NON_NULL
-  security:
-    oauth2:
-      api-client-id: api-client-id
-      api-client-secret: api-client-secret
-      token-uri: http://localhost:8080/tpv-user/oauth2/token
 
 info:
   app:
