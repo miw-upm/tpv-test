@@ -6,7 +6,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -18,25 +17,24 @@ import java.util.Objects;
 @Component
 public class HttpRequestBuilder {
 
+    private final TestRestTemplate testRestTemplate;
     private final String apiClientId;
     private final String apiClientSecret;
-    private final String tokenUri;
-
-    private final TestRestTemplate testRestTemplate;
+    private final String authorizationServer;
     private final Map<String, Object> queryParams = new LinkedHashMap<>();
+
     private HttpMethod method;
     private String url;
     private Object[] uriVars;
-    private String scope;
+    private String role;
     private Object body;
 
-    public HttpRequestBuilder(@Value("${spring.security.oauth2.api-client-id}") String apiClientId,
-                              @Value("${spring.security.oauth2.api-client-secret}") String apiClientSecret,
-                              @Value("${spring.security.oauth2.token-uri}") String tokenUri
-    ) {
+    public HttpRequestBuilder(@Value("${spring.security.oauth2.clients.api-client-id}") String apiClientId,
+                              @Value("${spring.security.oauth2.clients.api-client-secret}") String apiClientSecret,
+                              @Value("${spring.security.oauth2.clients.authorization-server}") String authorizationServer) {
         this.apiClientId = apiClientId;
         this.apiClientSecret = apiClientSecret;
-        this.tokenUri = tokenUri;
+        this.authorizationServer = authorizationServer;
         this.testRestTemplate = new TestRestTemplate();
     }
 
@@ -75,8 +73,9 @@ public class HttpRequestBuilder {
         return this.httpMethod(HttpMethod.PATCH, url, uriVars);
     }
 
-    public HttpRequestBuilder scope(Scope scope) {
-        this.scope = scope.value();
+
+    public HttpRequestBuilder role(Role role) {
+        this.role = role.value();
         return this;
     }
 
@@ -85,23 +84,21 @@ public class HttpRequestBuilder {
         return this;
     }
 
-    private String obtainAccessToken(String scope) {
+    private String obtainAccessToken(String role) {
+        String accessTokenUrl = authorizationServer + "/oauth2/token";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         String auth = apiClientId + ":" + apiClientSecret;
         String encodedAuth = Base64.getEncoder()
                 .encodeToString(auth.getBytes(StandardCharsets.UTF_8));
         headers.set(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
-
         MultiValueMap<String, String> credentialsBody = new LinkedMultiValueMap<>();
         credentialsBody.add("grant_type", "client_credentials");
-        credentialsBody.add("scope", scope);
-
+        credentialsBody.add("scope", Scope.PROFILE.value());
+        credentialsBody.add("role", role);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(credentialsBody, headers);
-
         Map<?, ?> responseBody = Objects.requireNonNull(
-                new RestTemplate().postForEntity(this.tokenUri, request, Map.class).getBody()
+                testRestTemplate.postForEntity(accessTokenUrl, request, Map.class).getBody()
         );
         return responseBody.get("access_token").toString();
     }
@@ -117,7 +114,7 @@ public class HttpRequestBuilder {
     }
 
     private HttpEntity<?> buildHttpEntity() {
-        HttpHeaders headers = buildHeaders(this.scope);
+        HttpHeaders headers = buildHeaders(this.role);
         if (this.body != null) {
             return new HttpEntity<>(this.body, headers);
         } else {
@@ -148,20 +145,13 @@ public class HttpRequestBuilder {
             throw new IllegalArgumentException("URL is required.");
         }
         HttpEntity<?> entity = buildHttpEntity();
-        ResponseEntity<R> response = testRestTemplate.exchange(
+        return testRestTemplate.exchange(
                 this.buildFinalUrl(),
                 this.method,
                 entity,
                 responseType,
                 this.uriVars != null ? this.uriVars : new Object[]{}
         );
-        this.method = null;
-        this.url = null;
-        this.uriVars = null;
-        this.scope = null;
-        this.body = null;
-
-        return response;
     }
 
 }

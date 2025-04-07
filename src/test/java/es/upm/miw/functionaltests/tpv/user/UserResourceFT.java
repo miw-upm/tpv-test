@@ -1,38 +1,52 @@
 package es.upm.miw.functionaltests.tpv.user;
 
 import es.upm.miw.functionaltests.HttpRequestBuilder;
+import es.upm.miw.functionaltests.Role;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class UserResourceFT {
 
-    public static final String URL = "http://localhost:8080/tpv-user/users";
-    private final TestRestTemplate testRestTemplate = new TestRestTemplate();
+    static final String URL = "http://localhost:8081/users";
     @Autowired
     private HttpRequestBuilder httpRequestBuilder;
 
     @Test
     void testCreateUser() {
         UserDto userDto = UserDto.builder().mobile("666666001").firstName("test").password("test").dni(null).address("C/TPV, 0").build();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<UserDto> entity = new HttpEntity<>(userDto, headers);
-
-        ResponseEntity<UserDto> response = testRestTemplate.exchange(
-                URL,
-                HttpMethod.POST,
-                entity,
-                UserDto.class);
-
+        ResponseEntity<UserDto> response = httpRequestBuilder.post(URL).role(Role.ANONYMOUS).body(userDto).exchange(UserDto.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void testFindAllWithAdmin() {
+        ResponseEntity<UserDto[]> response = httpRequestBuilder.get(URL).role(Role.ADMIN).exchange(UserDto[].class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isNotEmpty();
+        assertThat(Arrays.stream(response.getBody()).map(UserDto::getFirstName).toList())
+                .contains("admin");
+    }
+
+    @Test
+    void testFindAllWithManager() {
+        ResponseEntity<UserDto[]> response = httpRequestBuilder.get(URL).role(Role.MANAGER).exchange(UserDto[].class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isNotEmpty();
+        assertThat(Arrays.stream(response.getBody()).map(UserDto::getFirstName).toList())
+                .contains("man")
+                .doesNotContain("admin");
     }
 
 }

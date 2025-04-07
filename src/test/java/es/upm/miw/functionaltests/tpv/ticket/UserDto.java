@@ -1,6 +1,6 @@
 package es.upm.miw.functionaltests.tpv.ticket;
 
-import es.upm.miw.functionaltests.Scope;
+import es.upm.miw.functionaltests.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ public class UserDto {
     private String dni;
     private String address;
     private String password;
-    private Scope scope;
+    private Role role;
     private LocalDateTime registrationDate;
     private Boolean active;
 }

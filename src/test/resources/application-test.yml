@@ -5,6 +5,7 @@ logging:
 spring:
   security:
     oauth2:
-      api-client-id: api-client-id
-      api-client-secret: api-client-secret
-      token-uri: http://localhost:8080/tpv-user/oauth2/token
+      clients:
+        api-client-id: api-client-id
+        api-client-secret: api-client-secret
+        authorization-server: http://localhost:8081

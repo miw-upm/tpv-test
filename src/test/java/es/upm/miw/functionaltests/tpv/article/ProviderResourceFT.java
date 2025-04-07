@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-import static es.upm.miw.functionaltests.Scope.ADMIN;
+import static es.upm.miw.functionaltests.Role.ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -33,14 +33,14 @@ class ProviderResourceFT {
     @Test
     void testReadProviderNotFound() {
         ResponseEntity<Provider> response = this.httpRequestBuilder
-                .get(URL + "/{company}", "KK").scope(ADMIN).exchange(Provider.class);
+                .get(URL + "/{company}", "KK").role(ADMIN).exchange(Provider.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void testFindProviders() {
         ResponseEntity<ProviderCompanyDto> response = this.httpRequestBuilder
-                .get(URL + "/companies").scope(ADMIN).param("company","p").exchange(ProviderCompanyDto.class);
+                .get(URL + "/companies").role(ADMIN).param("company", "p").exchange(ProviderCompanyDto.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCompanies()).hasSizeGreaterThanOrEqualTo(3);
