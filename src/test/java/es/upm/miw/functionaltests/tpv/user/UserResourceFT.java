@@ -24,7 +24,7 @@ class UserResourceFT {
     @Test
     void testCreateUser() {
         UserDto userDto = UserDto.builder().mobile("666666001").firstName("test").password("test").dni(null).address("C/TPV, 0").build();
-        ResponseEntity<UserDto> response = httpRequestBuilder.post(URL).role(Role.ANONYMOUS).body(userDto).exchange(UserDto.class);
+        ResponseEntity<UserDto> response = httpRequestBuilder.post(URL).role(Role.URL_TOKEN).body(userDto).exchange(UserDto.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
 
